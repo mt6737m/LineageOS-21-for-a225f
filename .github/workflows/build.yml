@@ -23,7 +23,7 @@ jobs:
           sudo curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo
           sudo chmod a+x /usr/local/bin/repo
 
-      - name: Configure and build
+      - name: Initialize and sync source
         run: |
           mkdir -p ~/android/lineage
           cd ~/android/lineage
@@ -31,9 +31,17 @@ jobs:
           repo init -u https://github.com/LineageOS/android.git -b lineage-21.0
           repo sync -c --no-clone-bundle --no-tags -j4
 
+      - name: Clone device, vendor, and kernel trees
+        run: |
+          cd ~/android/lineage
+
           git clone https://github.com/Samsung-Helio-G80-Devs/android_device_samsung_a22.git -b lineage-21 device/samsung/a22
           git clone https://github.com/Samsung-Helio-G80-Devs/android_vendor_samsung_a22.git -b lineage-21 vendor/samsung/a22
-          git clone https://github.com/MaxShevPovar/linux-android-samsung-a22.git -b lineage-21 kernel/samsung/a22
+          git clone https://github.com/VH-Devices/android_kernel_samsung_a22.git -b lineage-21 kernel/samsung/a22
+
+      - name: Build ROM
+        run: |
+          cd ~/android/lineage
 
           export ALLOW_MISSING_DEPENDENCIES=true
           export BUILD_USERNAME="github"
@@ -42,9 +50,3 @@ jobs:
           source build/envsetup.sh
           lunch lineage_a225f-userdebug
           mka bacon -j2
-
-      - name: Upload ROM
-        uses: actions/upload-artifact@v3
-        with:
-          name: LineageOS21-A225F
-          path: ~/android/lineage/out/target/product/a225f/*.zip
