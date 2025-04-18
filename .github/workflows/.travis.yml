@@ -1,0 +1,30 @@
+language: bash
+dist: bionic
+sudo: required
+env:
+  global:
+    - TZ=UTC
+    - ANDROID_HOME=/opt/android-sdk-linux
+    - LINEAGE_VERSION=21.0
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev lib32z1-dev lib32stdc++6 lib32gcc1 lib32ncursesw5-dev liblz4-tool python3 python3-pip python3-setuptools libssl-dev bc
+
+install:
+  - curl -L https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip -o android-sdk.zip
+  - unzip android-sdk.zip -d $ANDROID_HOME
+  - export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+
+before_script:
+  - echo "Setting up Android build environment"
+  - git clone https://github.com/LineageOS/android.git --depth 1 -b lineage-21.0
+  - cd android
+  - source build/envsetup.sh
+  - lunch lineage_a225f-userdebug
+
+script:
+  - make -j$(nproc) bacon
+
+after_success:
+  - echo "Build completed successfully!"
